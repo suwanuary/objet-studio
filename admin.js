@@ -139,6 +139,8 @@ function updatePreview() {
     });
 }
 
+// admin.js의 uploadPhotos 함수 수정
+
 async function uploadPhotos() {
     const btn = document.getElementById('upload-btn');
     const progress = document.getElementById('upload-progress');
@@ -146,6 +148,10 @@ async function uploadPhotos() {
     const text = document.getElementById('progress-text');
     const category = document.getElementById('upload-category')?.value || 'mood';
     
+    // 👇 [추가됨] 제목 입력값 가져오기
+    const titleInput = document.getElementById('upload-title');
+    const customTitle = titleInput?.value.trim();
+
     btn.disabled = true;
     progress?.classList.remove('hidden');
     
@@ -163,9 +169,17 @@ async function uploadPhotos() {
             await uploadBytes(storageRef, file);
             const imageUrl = await getDownloadURL(storageRef);
             
+            // 👇 [수정됨] 제목 결정 로직 (입력값이 있으면 쓰고, 없으면 파일명 사용)
+            let finalTitle = customTitle;
+            if (!finalTitle) {
+                finalTitle = file.name.replace(/\.[^/.]+$/, ''); // 확장자 제거
+            } else if (selectedFiles.length > 1) {
+                finalTitle = `${customTitle} ${i + 1}`; // 여러 장 올릴 땐 뒤에 번호 붙임
+            }
+
             // Save to Firestore
             await addDoc(collection(db, 'photos'), {
-                title: file.name.replace(/\.[^/.]+$/, ''),
+                title: finalTitle,
                 category: category,
                 imageUrl: imageUrl,
                 storagePath: fileName,
@@ -181,6 +195,7 @@ async function uploadPhotos() {
         selectedFiles = [];
         document.getElementById('preview-area').innerHTML = '';
         document.getElementById('photo-input').value = '';
+        if(titleInput) titleInput.value = ''; // 입력칸 비우기
         loadPhotos();
     } catch (err) {
         console.error('Upload error:', err);
@@ -191,6 +206,8 @@ async function uploadPhotos() {
         btn.disabled = true;
     }
 }
+
+// admin.js의 loadPhotos 함수 수정
 
 async function loadPhotos() {
     const grid = document.getElementById('photos-grid');
@@ -204,7 +221,8 @@ async function loadPhotos() {
     
     try {
         const { db } = await import('./firebase-config.js');
-        const { collection, getDocs, query, orderBy } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+        // 👇 [추가됨] doc, updateDoc 기능을 불러옵니다
+        const { collection, getDocs, query, orderBy, doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
         
         const photosRef = collection(db, 'photos');
         const q = query(photosRef, orderBy('createdAt', 'desc'));
@@ -226,11 +244,38 @@ async function loadPhotos() {
         photos.forEach(p => {
             const div = document.createElement('div');
             div.className = 'photo-grid-item';
-            div.innerHTML = `<img src="${p.imageUrl}" alt="${p.title || ''}"><button class="delete-btn" data-id="${p.id}"><i class="bi bi-trash"></i></button>`;
+            // 👇 [수정됨] 제목 표시 및 수정 버튼 추가
+            div.style.position = 'relative';
+            div.innerHTML = `
+                <img src="${p.imageUrl}" alt="${p.title || ''}">
+                <div style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.6); color: white; padding: 4px; font-size: 11px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    ${p.title || 'Untitled'}
+                </div>
+                <button class="edit-btn" style="position: absolute; top: 5px; right: 35px; background: rgba(255,255,255,0.9); border: none; border-radius: 4px; cursor: pointer; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">✏️</button>
+                <button class="delete-btn" data-id="${p.id}"><i class="bi bi-trash"></i></button>
+            `;
             grid?.appendChild(div);
+
+            // 삭제 버튼 기능
             div.querySelector('.delete-btn').onclick = async () => {
                 if (confirm('Delete this photo?')) {
                     await deletePhoto(p.id, p.storagePath);
+                }
+            };
+
+            // 👇 [추가됨] 수정 버튼 기능 (이름 바꾸기)
+            div.querySelector('.edit-btn').onclick = async () => {
+                const newTitle = prompt("수정할 제목을 입력하세요:", p.title);
+                if (newTitle !== null && newTitle !== p.title) {
+                    try {
+                        const photoDoc = doc(db, "photos", p.id);
+                        await updateDoc(photoDoc, { title: newTitle });
+                        showToast("제목이 수정되었습니다.");
+                        loadPhotos(); // 목록 새로고침
+                    } catch (e) {
+                        console.error(e);
+                        showToast("수정 실패");
+                    }
                 }
             };
         });

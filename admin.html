@@ -65,23 +65,28 @@
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 30px;">
                     <!-- Upload -->
                     <div class="admin-card">
-                        <h3>Upload Photos</h3>
-                        
-                        <div id="upload-area" class="upload-area">
-                            <p class="text-muted">Click or drag to upload</p>
-                            <p class="small text-muted">JPG, PNG, WebP</p>
-                            <input type="file" id="photo-input" accept="image/*" multiple>
-                        </div>
-                        
-                        <div style="display: flex; gap: 10px; margin-top: 20px;">
-                            <select id="upload-category" class="form-select" style="flex: 1;">
-                                <option value="mood">Mood (감성)</option>
-                                <option value="natural">Natural (자연스러운)</option>
-                                <option value="urban">Urban (도시적)</option>
-                                <option value="artistic">Artistic (예술적)</option>
-                            </select>
-                            <button id="upload-btn" class="btn" disabled>Upload</button>
-                        </div>
+                    <h3>Upload Photos</h3>
+                    
+                    <div id="upload-area" class="upload-area">
+                        <p class="text-muted">Click or drag to upload</p>
+                        <p class="small text-muted">JPG, PNG, WebP</p>
+                        <input type="file" id="photo-input" accept="image/*" multiple>
+                    </div>
+
+                    <div style="margin-top: 15px;">
+                        <input type="text" id="upload-title" class="form-input" placeholder="이미지 제목을 입력하세요 (비워두면 파일명 사용)">
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-top: 20px;">
+                        <select id="upload-category" class="form-select" style="flex: 1;">
+                            <option value="mood">Mood (감성)</option>
+                            <option value="natural">Natural (자연스러운)</option>
+                            <option value="urban">Urban (도시적)</option>
+                            <option value="artistic">Artistic (예술적)</option>
+                        </select>
+                        <button id="upload-btn" class="btn" disabled>Upload</button>
+                    </div>
+                    
+                    </div>
                         
                         <div id="upload-progress" class="hidden">
                             <div class="progress"><div class="progress-bar" style="width: 0%"></div></div>
