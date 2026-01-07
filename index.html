@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Portrait & Editorial Photography">
+    <meta name="theme-color" content="#000000">
+    
+    <title>OBJET STUDIO — 최인오</title>
+    
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>◯</text></svg>">
+    
+    <link href="style.css" rel="stylesheet">
+    
+    <script>
+        (function() {
+            const theme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav" id="nav">
+        <a href="#" class="nav-logo">Objet Studio</a>
+        
+        <ul class="nav-menu" id="nav-menu">
+            <li><a href="index.html" class="nav-link active">Home</a></li>
+            <li><a href="gallery.html" class="nav-link">Gallery</a></li>
+            <li><a href="#about" class="nav-link">About</a></li>
+            <li><a href="#contact" class="nav-link">Contact</a></li>
+        </ul>
+        
+        <button class="nav-toggle" id="nav-toggle" aria-label="Menu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero" id="hero">
+        <div class="hero-image">
+            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=1920&q=85" alt="Featured Work">
+        </div>
+        <div class="hero-overlay"></div>
+        
+        <div class="hero-content">
+            <h1 class="hero-title">Objet Studio</h1>
+            <p class="hero-subtitle">Choi In O — Portrait & Snap Photography</p>
+        </div>
+        
+        <a href="gallery.html" class="scroll-indicator">
+            <span>View Gallery</span>
+            <svg viewBox="0 0 24 24">
+                <path d="M12 5v14M5 12l7 7 7-7"/>
+            </svg>
+        </a>
+    </section>
+
+    <!-- Gallery Preview Section -->
+    <section class="gallery" id="work">
+        <div class="gallery-grid" id="gallery-grid">
+            <!-- Dynamic content loaded by JS -->
+        </div>
+        
+        <div class="gallery-status" id="gallery-loading">
+            <div class="spinner"></div>
+            <p>Loading</p>
+        </div>
+        
+        <div class="gallery-status hidden" id="gallery-empty">
+            <p>No works yet</p>
+        </div>
+        
+        <!-- View All Button -->
+        <div style="text-align: center; padding: 60px 20px;">
+            <a href="gallery.html" class="view-all-btn">View All Works</a>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="about" id="about">
+        <p class="about-title">About</p>
+        <p class="about-text">
+            당신의 순간을 작품으로.<br>
+            인천 기반, 스냅 · 컨셉 · 인물 전문.
+        </p>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="contact" id="contact">
+        <div class="contact-inner">
+            <p class="contact-title">Inquiries</p>
+            
+            <form id="contact-form">
+                <div id="form-alert"></div>
+                
+                <div class="form-group">
+                    <label class="form-label">Name</label>
+                    <input type="text" class="form-input" name="clientName" placeholder="Your name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Contact</label>
+                    <input type="tel" class="form-input" name="contact" placeholder="Phone or Email" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Date</label>
+                    <input type="date" class="form-input" name="date" id="date-input" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Type</label>
+                    <select class="form-select" name="course" required>
+                        <option value="" disabled selected>Select type</option>
+                        <option value="snap">스냅 촬영</option>
+                        <option value="concept">컨셉 촬영</option>
+                        <option value="profile">인물 / 프로필</option>
+                        <option value="other">기타 문의</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Message</label>
+                    <textarea class="form-textarea" name="message" placeholder="Tell me about your project" rows="4"></textarea>
+                </div>
+                
+                <button type="submit" class="form-submit" id="submit-btn">
+                    <span class="btn-text">Send Inquiry</span>
+                    <span class="btn-loading hidden">Sending...</span>
+                </button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p class="footer-logo">Objet Studio</p>
+        
+        <div class="footer-social">
+            <a href="https://instagram.com/choi_in_o_com" target="_blank">Instagram</a>
+            <a href="tel:01082188308">010-8218-8308</a>
+            <a href="/cdn-cgi/l/email-protection#ccafa3a2b8adafb88ca3aea6a9b8e2bfb8b9a8a5a3">Email</a>
+        </div>
+        
+        <p class="footer-copy">© 2024 Objet Studio. Incheon, Korea.</p>
+        
+        <p class="footer-admin">
+            <a href="admin.html">→ Admin Portal</a>
+        </p>
+    </footer>
+
+    <!-- Lightbox -->
+    <div class="lightbox" id="lightbox">
+        <button class="lightbox-close" aria-label="Close">×</button>
+        <img src="" alt="">
+    </div>
+
+    <!-- Theme Toggle -->
+    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+        <svg class="sun" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="5"/>
+            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+        </svg>
+        <svg class="moon" viewBox="0 0 24 24">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+    </button>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <scr

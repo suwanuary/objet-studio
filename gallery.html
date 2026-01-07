@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Objet Studio Gallery - 최인오 포토그래퍼">
+    <title>Gallery — Objet Studio</title>
+    
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>◯</text></svg>">
+    <link href="style.css" rel="stylesheet">
+    
+    <style>
+        /* Gallery Page Specific Styles */
+        .gallery-page {
+            min-height: 100vh;
+            background: var(--color-bg);
+        }
+        
+        /* Category Filter */
+        .category-filter {
+            position: fixed;
+            top: 50%;
+            left: 40px;
+            transform: translateY(-50%);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .category-btn {
+            background: none;
+            border: none;
+            font-family: var(--font-sans);
+            font-size: 0.65rem;
+            font-weight: 400;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--color-text-muted);
+            cursor: pointer;
+            transition: all var(--transition);
+            text-align: left;
+            padding: 5px 0;
+            position: relative;
+        }
+        
+        .category-btn::before {
+            content: '';
+            position: absolute;
+            left: -15px;
+            top: 50%;
+            width: 0;
+            height: 1px;
+            background: var(--color-text);
+            transition: width var(--transition);
+        }
+        
+        .category-btn:hover,
+        .category-btn.active {
+            color: var(--color-text);
+        }
+        
+        .category-btn.active::before {
+            width: 10px;
+        }
+        
+        /* Horizontal Scroll Container */
+        .horizontal-scroll-wrapper {
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .horizontal-scroll-container {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            transform: translateY(-50%);
+            display: flex;
+            gap: 20px;
+            padding: 0 150px;
+            transition: transform 0.1s ease-out;
+            will-change: transform;
+        }
+        
+        .gallery-card {
+            flex-shrink: 0;
+            width: 350px;
+            height: 500px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        
+        .gallery-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        .gallery-card:hover img {
+            transform: scale(1.05);
+        }
+        
+        .gallery-card-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 30px;
+            background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all var(--transition);
+        }
+        
+        .gallery-card:hover .gallery-card-overlay {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .gallery-card-title {
+            font-family: var(--font-serif);
+            font-size: 1rem;
+            letter-spacing: 0.1em;
+            color: #fff;
+            margin-bottom: 5px;
+        }
+        
+        .gallery-card-category {
+            font-size: 0.6rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.6);
+        }
+        
+        /* Progress Bar */
+        .scroll-progress {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 2px;
+            background: var(--color-border);
+            z-index: 100;
+        }
+        
+        .scroll-progress-bar {
+            height: 100%;
+            background: var(--color-text);
+            width: 0%;
+            transition: width 0.1s ease-out;
+        }
+        
+        /* Scroll Hint */
+        .scroll-hint {
+            position: fixed;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.6rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--color-text-muted);
+            z-index: 100;
+        }
+        
+        /* Gallery Counter */
+        .gallery-counter {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            font-family: var(--font-serif);
+            font-size: 0.9rem;
+            color: var(--color-text-muted);
+            z-index: 100;
+        }
+        
+        .gallery-counter span {
+            color: var(--color-text);
+        }
+        
+        /* Empty State */
+        .gallery-empty {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: var(--color-text-muted);
+        }
+        
+        /* Loading */
+        .gallery-loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .category-filter {
+                position: fixed;
+                top: auto;
+                bottom: 100px;
+                left: 50%;
+                transform: translateX(-50%);
+                flex-direction: row;
+                gap: 20px;
+                background: var(--color-bg);
+                padding: 15px 25px;
+                border: 1px solid var(--color-border);
+            }
+            
+            .category-btn::before {
+                display: none;
+            }
+            
+            .gallery-card {
+                width: 280px;
+                height: 400px;
+            }
+            
+            .horizontal-scroll-container {
+                padding: 0 30px;
+            }
+            
+            .scroll-progress {
+                bottom: 30px;
+                width: 150px;
+            }
+            
+            .scroll-hint {
+                display: none;
+            }
+            
+            .gallery-counter {
+                bottom: 30px;
+                right: 30px;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+    
+    <script>
+        (function() {
+            const theme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav" id="nav">
+        <a href="index.html" class="nav-logo">Objet Studio</a>
+        
+        <ul class="nav-menu" id="nav-menu">
+            <li><a href="index.html" class="nav-link">Home</a></li>
+            <li><a href="gallery.html" class="nav-link active">Gallery</a></li>
+            <li><a href="index.html#about" class="nav-link">About</a></li>
+            <li><a href="index.html#contact" class="nav-link">Contact</a></li>
+        </ul>
+        
+        <button class="nav-toggle" id="nav-toggle" aria-label="Menu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </nav>
+
+    <!-- Gallery Page -->
+    <main class="gallery-page">
+        <!-- Category Filter -->
+        <div class="category-filter">
+            <button class="category-btn active" data-category="all">All</button>
+            <button class="category-btn" data-category="mood">Mood</button>
+            <button class="category-btn" data-category="natural">Natural</button>
+            <button class="category-btn" data-category="urban">Urban</button>
+            <button class="category-btn" data-category="artistic">Artistic</button>
+        </div>
+        
+        <!-- Horizontal Scroll Area -->
+        <div class="horizontal-scroll-wrapper" id="scroll-wrapper">
+            <div class="horizontal-scroll-container" id="gallery-container">
+                <!-- Dynamic content -->
+            </div>
+            
+            <div class="gallery-loading" id="gallery-loading">
+                <div class="spinner"></div>
+                <p style="margin-top: 20px; color: var(--color-text-muted); font-size: 0.75rem;">Loading</p>
+            </div>
+            
+            <div class="gallery-empty hidden" id="gallery-empty">
+                <p>No photos in this category</p>
+            </div>
+        </div>
+        
+        <!-- Scroll Progress -->
+        <p class="scroll-hint">Scroll to explore</p>
+        <div class="scroll-progress">
+            <div class="scroll-progress-bar" id="progress-bar"></div>
+        </div>
+        
+        <!-- Counter -->
+        <div class="gallery-counter">
+            <span id="current-index">1</span> / <span id="total-count">0</span>
+        </div>
+    </main>
+
+    <!-- Lightbox -->
+    <div class="lightbox" id="lightbox">
+        <button class="lightbox-close" aria-label="Close">×</button>
+        <img src="" alt="">
+    </div>
+
+    <!-- Theme Toggle -->
+    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+        <svg class="sun" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="5"/>
+            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+        </svg>
+        <svg class="moon" viewBox="0 0 24 24">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+    </button>
+
+    <script>
+        // ===== Demo Data =====
+        const DEMO_MODE = false;
+        
+        // Fallback data if Firebase is empty
+        const FALLBACK_PHOTOS = [
+            { id: '1', title: 'Golden Hour', category: 'mood', imageUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&q=80' },
+            { id: '2', title: 'City Lights', category: 'urban', imageUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=800&q=80' },
+            { id: '3', title: 'Soft Portrait', category: 'natural', imageUrl: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=800&q=80' },
+            { id: '4', title: 'Street Style', category: 'urban', imageUrl: 'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=800&q=80' },
+            { id: '5', title: 'Dreamy', category: 'mood', imageUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=800&q=80' },
+            { id: '6', title: 'Film Mood', category: 'artistic', imageUrl: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=800&q=80' },
+            { id: '7', title: 'Shadow Play', category: 'artistic', imageUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=800&q=80' },
+            { id: '8', title: 'Pure', category: 'natural', imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80' },
+            { id: '9', title: 'Neon Night', category: 'urban', imageUrl: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=800&q=80' }
+        ];
+        
+        let allPhotos = [];
+        let currentFilter = 'all';
+        let filteredPhotos = [];
+        let scrollPosition = 0;
+        
+        // ===== Theme =====
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+        }
+        
+        // ===== Gallery =====
+        async function loadGallery() {
+            const container = document.getElementById('gallery-container');
+            const loading = document.getElementById('gallery-loading');
+            const empty = document.getElementById('gallery-empty');
+            
+            loading.classList.remove('hidden');
+            container.innerHTML = '';
+            
+            try {
+                // Firebase에서 데이터 로드
+                const { db } = await import('./firebase-config.js');
+                const { collection, getDocs, query, orderBy } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+                
+                const photosRef = collection(db, 'photos');
+                const q = query(photosRef, orderBy('createdAt', 'desc'));
+                const snapshot = await getDocs(q);
+                
+                allPhotos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                
+                // Firebase에 데이터가 없으면 fallback 사용
+                if (allPhotos.length === 0) {
+                    allPhotos = FALLBACK_PHOTOS;
+                }
+            } catch (err) {
+                console.warn('Using fallback data:', err);
+                allPhotos = FALLBACK_PHOTOS;
+            }
+            
+            filteredPhotos = currentFilter === 'all' 
+                ? allPhotos 
+                : allPhotos.filter(p => p.category === currentFilter);
+            
+            loading.classList.add('hidden');
+            
+            if (!filteredPhotos.length) {
+                empty.classList.remove('hidden');
+                document.getElementById('total-count').textContent = '0';
+                return;
+            }
+            
+            empty.classList.add('hidden');
+            document.getElementById('total-count').textContent = filteredPhotos.length;
+            
+            filteredPhotos.forEach((photo, index) => {
+                const card = document.createElement('div');
+                card.className = 'gallery-card';
+                card.dataset.index = index;
+                card.innerHTML = `
+                    <img src="${photo.imageUrl}" alt="${photo.title || ''}" loading="lazy">
+                    <div class="gallery-card-overlay">
+                        <p class="gallery-card-title">${photo.title || ''}</p>
+                        <p class="gallery-card-category">${photo.category || ''}</p>
+                    </div>
+                `;
+                container.appendChild(card);
+                
+                card.addEventListener('click', () => openLightbox(photo.imageUrl));
+            });
+            
+            // Reset scroll
+            scrollPosition = 0;
+            container.style.transform = `translateY(-50%) translateX(0px)`;
+            updateProgress();
+        }
+        
+        // ===== Horizontal Scroll =====
+        function initHorizontalScroll() {
+            const wrapper = document.getElementById('scroll-wrapper');
+            const container = document.getElementById('gallery-container');
+            
+            let isScrolling = false;
+            
+            wrapper.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                
+                const containerWidth = container.scrollWidth;
+                const wrapperWidth = wrapper.clientWidth;
+                const maxScroll = containerWidth - wrapperWidth + 300;
+                
+                // Smooth scroll factor
+                const delta = e.deltaY * 1.5;
+                
+                scrollPosition += delta;
+                scrollPosition = Math.max(0, Math.min(scrollPosition, maxScroll));
+                
+                container.style.transform = `translateY(-50%) translateX(-${scrollPosition}px)`;
+                
+                updateProgress();
+                updateCounter();
+            }, { passive: false });
+            
+            // Touch support
+            let touchStart = 0;
+            let touchScrollStart = 0;
+            
+            wrapper.addEventListener('touchstart', (e) => {
+                touchStart = e.touches[0].clientX;
+                touchScrollStart = scrollPosition;
+            });
+            
+            wrapper.addEventListener('touchmove', (e) => {
+                const touch = e.touches[0].clientX;
+                const diff = touchStart - touch;
+                
+                const containerWidth = container.scrollWidth;
+                const wrapperWidth = wrapper.clientWidth;
+                const maxScroll = containerWidth - wrapperWidth + 300;
+                
+                scrollPosition = touchScrollStart + diff;
+                scrollPosition = Math.max(0, Math.min(scrollPosition, maxScroll));
+                
+                container.style.transform = `translateY(-50%) translateX(-${scrollPosition}px)`;
+                
+                updateProgress();
+                updateCounter();
+            });
+        }
+        
+        function updateProgress() {
+            const container = document.getElementById('gallery-container');
+            const wrapper = document.getElementById('scroll-wrapper');
+            const progressBar = document.getElementById('progress-bar');
+            
+            const containerWidth = container.scrollWidth;
+            const wrapperWidth = wrapper.clientWidth;
+            const maxScroll = containerWidth - wrapperWidth + 300;
+            
+            const progress = maxScroll > 0 ? (scrollPosition / maxScroll) * 100 : 0;
+            progressBar.style.width = `${Math.min(100, progress)}%`;
+        }
+        
+        function updateCounter() {
+            const cards = document.querySelectorAll('.gallery-card');
+            const wrapper = document.getElementById('scroll-wrapper');
+            const wrapperCenter = wrapper.clientWidth / 2;
+            
+            let closestIndex = 0;
+            let closestDistance = Infinity;
+            
+            cards.forEach((card, index) => {
+                const rect = card.getBoundingClientRect();
+                const cardCenter = rect.left + rect.width / 2;
+                const distance = Math.abs(cardCenter - wrapperCenter);
+                
+                if (distance < closestDistance) {
+                    closestDistance = distance;
+                    closestIndex = index;
+                }
+            });
+            
+            document.getElementById('current-index').textContent = closestIndex + 1;
+        }
+        
+        // ===== Lightbox =====
+        function openLightbox(src) {
+            const lb = document.getElementById('lightbox');
+            const img = lb.querySelector('img');
+            img.src = src;
+            lb.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeLightbox() {
+            const lb = document.getElementById('lightbox');
+            lb.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        
+        // ===== Navigation =====
+        function initNav() {
+            const toggle = document.getElementById('nav-toggle');
+            const menu = document.getElementById('nav-menu');
+            
+            toggle?.addEventListener('click', () => {
+                toggle.classList.toggle('active');
+                menu.classList.toggle('active');
+            });
+            
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.addEventListener('click', () => {
+                    toggle?.classList.remove('active');
+                    menu?.classList.remove('active');
+                });
+            });
+            
+            // Nav scroll effect
+            window.addEventListener('scroll', () => {
+                document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 50);
+            });
+        }
+        
+        // ===== Category Filter =====
+        function initCategoryFilter() {
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentFilter = btn.dataset.category;
+                    loadGallery();
+                });
+            });
+        }
+        
+        // ===== Init =====
+        document.addEventListener('DOMContentLoaded', () => {
+            initNav();
+            initCategoryFilter();
+            initHorizontalScroll();
+            loadGallery();
+            
+            document.getElementById('theme-toggle')?.addEventListener('click', toggleTheme);
+            document.getElementById('lightbox')?.addEventListener('click', (e) => {
+                if (e.target.classList.contains('lightbox') || e.target.classList.contains('lightbox-close')) {
+                    closeLightbox();
+                }
+            });
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') closeLightbox();
+            });
+        });
+    </script>
+</body>
+</html>
