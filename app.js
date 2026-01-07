@@ -160,7 +160,7 @@ function initLightbox() {
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
 }
 
-// ===== Contact Form =====
+// ===== Contact Form (통합 수정됨) =====
 async function handleSubmit(e) {
     e.preventDefault();
     
@@ -173,10 +173,11 @@ async function handleSubmit(e) {
     const data = Object.fromEntries(new FormData(form));
     
     if (!data.clientName || !data.contact || !data.date || !data.course) {
-        showAlert(alert, 'Please fill all required fields', 'error');
+        showAlert(alert, '모든 필수 항목을 입력해주세요.', 'error');
         return;
     }
     
+    // 로딩 시작
     btnText?.classList.add('hidden');
     btnLoad?.classList.remove('hidden');
     btn.disabled = true;
@@ -191,12 +192,15 @@ async function handleSubmit(e) {
             await addDoc(collection(db, 'bookings'), { ...data, createdAt: serverTimestamp() });
         }
         
-        showAlert(alert, 'Thank you! I will get back to you soon.', 'success');
-        showToast('Message sent successfully');
+        // 성공 시 (여기에 요청하신 진정성 있는 문구를 넣었습니다!)
+        showToast("소중한 문의 감사합니다.<br>내용을 꼼꼼히 확인 후, 최대한 빠르게 연락드리겠습니다!");
         form.reset();
+        
     } catch (err) {
-        showAlert(alert, 'Something went wrong. Please try again.', 'error');
+        console.error(err);
+        showAlert(alert, '전송 중 오류가 발생했습니다. 다시 시도해주세요.', 'error');
     } finally {
+        // 로딩 끝
         btnText?.classList.remove('hidden');
         btnLoad?.classList.add('hidden');
         btn.disabled = false;
@@ -210,16 +214,31 @@ function showAlert(el, msg, type) {
     setTimeout(() => { el.className = ''; el.textContent = ''; }, 5000);
 }
 
-function showToast(msg) {
+// ===== Toast Notification (예쁜 디자인 버전) =====
+function showToast(message) {
     const container = document.getElementById('toast-container');
     if (!container) return;
     
     const toast = document.createElement('div');
-    toast.className = 'toast';
-    toast.textContent = msg;
+    toast.className = 'toast-message'; // CSS에서 꾸민 클래스 이름
+    toast.innerHTML = message; // 줄바꿈(<br>) 적용을 위해 innerHTML 사용
+
     container.appendChild(toast);
-    
-    setTimeout(() => toast.remove(), 4000);
+
+    // 스르륵 나타나게 하기
+    requestAnimationFrame(() => {
+        toast.classList.add('show');
+    });
+
+    // 3초 뒤에 사라지게 하기
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+            if(container.contains(toast)) {
+                container.removeChild(toast);
+            }
+        }, 300); 
+    }, 3000);
 }
 
 // ===== Date Input =====
