@@ -92,20 +92,24 @@ async function loadGallery() {
     empty?.classList.add('hidden');
     grid.innerHTML = '';
     
-    // Shorter loading time
-    await new Promise(r => setTimeout(r, 300));
+    let photos = [];
     
-    let photos = PHOTOS;
-    
-    if (!DEMO_MODE) {
-        try {
-            const { db } = await import('./firebase-config.js');
-            const { collection, getDocs, query, orderBy } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-            const snap = await getDocs(query(collection(db, 'photos'), orderBy('createdAt', 'desc')));
-            photos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        } catch (e) {
-            console.warn('Using demo data');
-        }
+    try {
+        // Firebase에서 데이터 로드
+        const { db } = await import('./firebase-config.js');
+        const { collection, getDocs, query, orderBy } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+        
+        const photosRef = collection(db, 'photos');
+        const q = query(photosRef, orderBy('createdAt', 'desc'));
+        const snapshot = await getDocs(q);
+        
+        photos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        console.log('Loaded photos from Firebase:', photos.length);
+        
+    } catch (e) {
+        console.error('Firebase error:', e);
+        // 에러 시 기본 데이터 사용
+        photos = PHOTOS;
     }
     
     loading?.classList.add('hidden');
@@ -117,9 +121,9 @@ async function loadGallery() {
     
     grid.innerHTML = photos.map(p => `
         <div class="gallery-item" data-src="${p.imageUrl}">
-            <img src="${p.imageUrl}" alt="${p.title}" loading="lazy">
+            <img src="${p.imageUrl}" alt="${p.title || ''}" loading="lazy">
             <div class="gallery-item-overlay">
-                <span class="gallery-item-title">${p.title}</span>
+                <span class="gallery-item-title">${p.title || ''}</span>
             </div>
         </div>
     `).join('');
